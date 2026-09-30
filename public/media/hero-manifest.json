@@ -1,0 +1,25 @@
+{
+  "duration": 10.04,
+  "fps": 24,
+  "segmentDuration": 0.75,
+  "segmentCount": 14,
+  "fallback": "./media/w-motion-hero-fallback-v3-1080.mp4",
+  "poster": "./media/hero-poster-v3-1080.jpg",
+  "profiles": {
+    "full": {
+      "width": 1920,
+      "height": 1080,
+      "template": "./media/segments-v3/full/segment-{index}.mp4"
+    },
+    "high": {
+      "width": 1280,
+      "height": 720,
+      "template": "./media/segments-v3/high/segment-{index}.mp4"
+    },
+    "medium": {
+      "width": 854,
+      "height": 480,
+      "template": "./media/segments-v3/medium/segment-{index}.mp4"
+    }
+  }
+}

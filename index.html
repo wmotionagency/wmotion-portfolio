@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#07101f" />
+    <meta
+      name="description"
+      content="W Motion progetta siti web cinematici, interattivi e orientati alla conversione."
+    />
+    <link rel="icon" type="image/png" href="./media/w-motion-mark-transparent.png" />
+    <link rel="preload" as="image" href="./media/hero-poster-v3-1080.jpg" />
+    <link rel="stylesheet" href="./src/styles.css" />
+    <title>W Motion — Siti web in movimento</title>
+    <script>
+      if (location.protocol === 'file:') {
+        document.documentElement.classList.add('direct-file');
+        addEventListener('DOMContentLoaded', () => {
+          const fromBuild = /[\\/]dist[\\/]index\.html$/i.test(decodeURIComponent(location.pathname));
+          const mediaRoot = fromBuild ? './media/' : './public/media/';
+          document.querySelectorAll('[src*="media/"], [href*="media/"]').forEach((element) => {
+            const attribute = element.hasAttribute('src') ? 'src' : 'href';
+            const value = element.getAttribute(attribute);
+            const marker = value.indexOf('media/');
+            if (marker >= 0) element.setAttribute(attribute, mediaRoot + value.slice(marker + 6));
+          });
+          const heroMedia = document.querySelector('.hero-media');
+          if (heroMedia) heroMedia.style.backgroundImage = `url('${mediaRoot}hero-poster-v3-1080.jpg')`;
+
+          const hero = document.querySelector('[data-hero]');
+          const fallback = document.querySelector('#hero-fallback');
+          const header = document.querySelector('[data-header]');
+          const darkSurfaces = [...document.querySelectorAll('.manifesto, .process, .path, .closing, .site-footer')];
+          const progressBar = document.querySelector('[data-progress]');
+          const beats = {
+            one: document.querySelector('[data-beat="one"]'),
+            two: document.querySelector('[data-beat="two"]'),
+            three: document.querySelector('[data-beat="three"]'),
+          };
+          const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
+          const envelope = (progress, start, peakStart, peakEnd, end) => {
+            if (progress <= start || progress >= end) return 0;
+            if (progress < peakStart) return (progress - start) / (peakStart - start);
+            if (progress <= peakEnd) return 1;
+            return 1 - (progress - peakEnd) / (end - peakEnd);
+          };
+          let queued = false;
+          const updateHeaderTheme = () => {
+            const headerLine = header.getBoundingClientRect().height / 2;
+            const overDarkSurface = darkSurfaces.some((surface) => {
+              const bounds = surface.getBoundingClientRect();
+              return bounds.top <= headerLine && bounds.bottom > headerLine;
+            });
+            header.classList.toggle('is-dark', overDarkSurface);
+          };
+          const updateDirectPreview = () => {
+            queued = false;
+            const maxScroll = Math.max(1, hero.offsetHeight - innerHeight);
+            const progress = clamp(-hero.getBoundingClientRect().top / maxScroll);
+            const values = {
+              one: envelope(progress, -0.03, 0, 0.19, 0.3),
+              two: envelope(progress, 0.25, 0.34, 0.5, 0.62),
+              three: envelope(progress, 0.58, 0.67, 0.8, 0.91),
+            };
+            Object.entries(beats).forEach(([key, element]) => {
+              const value = values[key];
+              element.style.opacity = value;
+              element.style.transform = `translateY(${(1 - value) * 28}px)`;
+              element.style.pointerEvents = value > .75 ? 'auto' : 'none';
+            });
+            progressBar.style.transform = `scaleX(${progress})`;
+            updateHeaderTheme();
+            if (fallback.duration && !fallback.seeking) {
+              const targetTime = progress * fallback.duration;
+              if (Math.abs(fallback.currentTime - targetTime) > .045) fallback.currentTime = targetTime;
+            }
+          };
+          document.body.classList.add('fallback-active');
+          fallback.addEventListener('loadedmetadata', updateDirectPreview, { once: true });
+          addEventListener('scroll', () => {
+            if (!queued) {
+              queued = true;
+              requestAnimationFrame(updateDirectPreview);
+            }
+          }, { passive: true });
+          addEventListener('resize', updateDirectPreview, { passive: true });
+          updateDirectPreview();
+        });
+      }
+    </script>
+    <script type="module" src="./src/main.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#contenuto">Vai al contenuto</a>
+
+    <header class="site-header" data-header>
+      <a class="brand" href="#top" aria-label="W Motion, torna all'inizio">
+        <span class="brand-mark"><img src="./media/w-motion-mark-transparent.png" alt="" /></span>
+        <span class="brand-word">MOTION</span>
+      </a>
+      <button class="menu-toggle" type="button" aria-label="Apri il menu" aria-expanded="false" data-menu-toggle>
+        <span></span><span></span>
+      </button>
+      <nav class="site-nav" aria-label="Navigazione principale" data-nav>
+        <a href="#approccio">Approccio</a>
+        <a href="#servizi">Servizi</a>
+        <a href="#processo">Processo</a>
+        <button class="nav-cta" type="button" data-open-project-modal aria-haspopup="dialog" aria-controls="project-modal">Parliamone</button>
+      </nav>
+    </header>
+
+    <main id="contenuto">
+      <section class="hero" id="top" aria-labelledby="hero-title" data-hero>
+        <div class="hero-sticky">
+          <div class="hero-media" aria-hidden="true">
+            <canvas id="hero-canvas"></canvas>
+            <video
+              id="hero-fallback"
+              muted
+              playsinline
+              preload="metadata"
+              poster="./media/hero-poster-v3-1080.jpg"
+              src="./media/w-motion-hero-fallback-v3-1080.mp4"
+            ></video>
+            <div class="hero-wash"></div>
+          </div>
+
+          <div class="hero-progress" aria-hidden="true"><span data-progress></span></div>
+
+          <div class="hero-copy hero-copy--one" data-beat="one">
+            <h1 id="hero-title">Siti web che danno <em>movimento</em> al tuo brand.</h1>
+          </div>
+
+          <div class="hero-copy hero-copy--two" data-beat="two">
+            <p class="hero-statement">
+              Catturiamo l’attenzione, la trasformiamo in interesse e la guidiamo verso un’azione.
+            </p>
+          </div>
+
+          <div class="hero-copy hero-copy--three" data-beat="three">
+            <p class="hero-statement">Scopri cosa possiamo costruire per il tuo brand.</p>
+            <button class="button button--dark" type="button" data-open-project-modal aria-haspopup="dialog" aria-controls="project-modal">
+              Parliamo del tuo progetto
+            </button>
+          </div>
+          <p class="sr-only" id="video-status" aria-live="polite"></p>
+        </div>
+      </section>
+
+      <section class="intro section" id="approccio">
+        <div class="intro-grid">
+          <div class="reveal">
+            <p class="kicker">L’ATTENZIONE NON BASTA.</p>
+            <h2>Deve portare<br /><span>da qualche parte.</span></h2>
+          </div>
+          <div class="intro-copy reveal">
+            <p class="lead">Un sito può essere bello e comunque non aiutare il business.</p>
+            <p>
+              W Motion progetta esperienze digitali che uniscono <strong>design, movimento e strategia</strong>,
+              con un obiettivo preciso: trasformare l’interesse dell’utente in un’azione concreta.
+            </p>
+          </div>
+        </div>
+        <div class="outcomes" aria-label="Azioni che il sito può generare">
+          <span>Una richiesta.</span><span>Una prenotazione.</span><span>Una visita.</span><span>Un acquisto.</span>
+        </div>
+      </section>
+
+      <section class="manifesto section">
+        <div class="manifesto-orbit" aria-hidden="true"></div>
+        <div class="manifesto-grid">
+          <div class="manifesto-title reveal">
+            <p class="kicker kicker--light">NON SOLO UN SITO.</p>
+            <h2>Un’esperienza costruita <span>per il business.</span></h2>
+          </div>
+          <div class="manifesto-copy reveal">
+            <p>Il movimento non viene aggiunto per decorare.</p>
+            <p>
+              Ogni animazione, transizione e interazione ha una funzione: attirare l’attenzione,
+              rendere più chiaro il messaggio, valorizzare ciò che rende diverso il brand e guidare
+              l’utente verso ciò che conta.
+            </p>
+          </div>
+        </div>
+        <div class="signal-rail" aria-hidden="true">
+          <div class="signal-track">
+            <div><span>ATTIRARE</span><i></i><span>CHIARIRE</span><i></i><span>GUIDARE</span><i></i><span>CONVERTIRE</span><i></i></div>
+            <div><span>ATTIRARE</span><i></i><span>CHIARIRE</span><i></i><span>GUIDARE</span><i></i><span>CONVERTIRE</span><i></i></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="services section" id="servizi">
+        <div class="services-heading reveal">
+          <div class="section-number">COSA FACCIAMO</div>
+          <h2>Movimento,<br />con una direzione.</h2>
+          <p>Quattro competenze. Un’unica esperienza coerente.</p>
+        </div>
+
+        <div class="service-list">
+          <article class="service-card reveal">
+            <span class="service-index">01</span>
+            <h3>Design web<br />cinematografico</h3>
+            <p>Una direzione visiva riconoscibile, progettata intorno all’identità del brand.</p>
+            <span class="service-tag">ART DIRECTION</span>
+          </article>
+          <article class="service-card reveal">
+            <span class="service-index">02</span>
+            <h3>Esperienze guidate<br />dallo scroll</h3>
+            <p>Lo scroll diventa narrazione, senza rendere il sito difficile da usare.</p>
+            <span class="service-tag">MOTION SYSTEM</span>
+          </article>
+          <article class="service-card reveal">
+            <span class="service-index">03</span>
+            <h3>Design orientato<br />alla conversione</h3>
+            <p>Gerarchie, messaggi e CTA costruiscono un percorso verso l’azione.</p>
+            <span class="service-tag">STRATEGY</span>
+          </article>
+          <article class="service-card reveal">
+            <span class="service-index">04</span>
+            <h3>Esperienza<br />responsive</h3>
+            <p>Movimento e composizione si adattano al dispositivo, non il contrario.</p>
+            <span class="service-tag">EVERY SCREEN</span>
+          </article>
+        </div>
+      </section>
+
+      <section class="perception section">
+        <h2 class="reveal">Un brand viene <span>percepito</span><br />prima di essere valutato.</h2>
+        <div class="perception-bottom">
+          <div class="perception-disc" data-replay-image aria-hidden="true">
+            <img src="./media/perception-sculpture.png" alt="" />
+          </div>
+          <p class="reveal">
+            Il sito contribuisce in modo decisivo a quella percezione. Prima ancora che l’utente analizzi
+            servizi, prezzi o caratteristiche, il design comunica il livello di cura, autorevolezza e
+            coerenza del brand. Per questo lavoriamo sull’esperienza completa: ciò che l’utente vede,
+            ciò che capisce, la fiducia che costruisce e ciò che sente mentre attraversa il brand.
+            Quando ogni elemento parla la stessa lingua, il sito non presenta soltanto un’attività:
+            ne rende immediatamente percepibile il valore.
+          </p>
+        </div>
+      </section>
+
+      <section class="process section" id="processo">
+        <div class="process-intro reveal">
+          <div class="section-number section-number--light">COME LAVORIAMO</div>
+        </div>
+        <ol class="process-list">
+          <li class="reveal">
+            <span>01 —</span><div><h3>Scoperta</h3><p>Studiamo il brand, il pubblico, l’offerta e l’obiettivo commerciale del sito.</p></div>
+          </li>
+          <li class="reveal">
+            <span>02 —</span><div><h3>Concept</h3><p>Definiamo la direzione creativa e il modo in cui movimento e interazione possono rafforzare il messaggio.</p></div>
+          </li>
+          <li class="reveal">
+            <span>03 —</span><div><h3>Prototipo</h3><p>Prima di sviluppare l’intero sito costruiamo una prima esperienza concreta.</p><p>Il progetto può essere visto, valutato e perfezionato prima di procedere.</p></div>
+          </li>
+          <li class="reveal">
+            <span>04 —</span><div><h3>Sviluppo</h3><p>Il concept approvato diventa un’esperienza completa, responsive e pronta per essere pubblicata.</p></div>
+          </li>
+        </ol>
+      </section>
+
+      <section class="path section" aria-label="Il percorso progettuale">
+        <p class="kicker kicker--light reveal">NON PROGETTIAMO PER RIEMPIRE PAGINE.</p>
+        <h2 class="reveal">Progettiamo per costruire un percorso.</h2>
+        <div class="path-words" data-path-words>
+          <i class="path-connector path-connector--desktop" aria-hidden="true"></i>
+          <i class="path-connector path-connector--top" aria-hidden="true"></i>
+          <i class="path-connector path-connector--bottom" aria-hidden="true"></i>
+          <i class="path-connector path-connector--final" aria-hidden="true"></i>
+          <span>Attenzione</span><span>Interesse</span><span>Comprensione</span><span>Desiderio</span><span>Azione</span>
+        </div>
+        <div class="path-principles reveal">
+          <p>Il design serve il brand.</p><p>Il movimento serve il messaggio.</p><p>Il sito serve il business.</p>
+        </div>
+        <button class="button button--blue path-cta reveal" type="button" data-open-project-modal aria-haspopup="dialog" aria-controls="project-modal">Raccontaci il tuo brand</button>
+      </section>
+
+      <section class="closing section" id="contatti" data-replay-section>
+        <div class="closing-glow" aria-hidden="true"></div>
+        <img src="./media/w-motion-logo.png" alt="" class="closing-logo" />
+        <div class="closing-content reveal">
+          <p class="kicker">IL PROSSIMO PROGETTO POTREBBE PARTIRE DA QUI.</p>
+          <h2>Immaginiamo qualcosa<br />che si faccia <span>sentire.</span></h2>
+          <p>Se un sito tradizionale non riesce a rappresentare pienamente il valore del brand, possiamo immaginare qualcosa di diverso.</p>
+          <button class="button button--light" type="button" data-open-project-modal aria-haspopup="dialog" aria-controls="project-modal">Inizia un progetto</button>
+        </div>
+      </section>
+    </main>
+
+    <dialog class="project-modal" id="project-modal" data-project-modal aria-labelledby="project-modal-title">
+      <form class="project-form" data-project-form>
+        <button class="project-modal__close" type="button" aria-label="Chiudi" data-close-project-modal>
+          <span></span><span></span>
+        </button>
+
+        <div class="project-modal__heading">
+          <p class="kicker">PARLIAMO DEL TUO PROGETTO</p>
+          <h2 id="project-modal-title">Iniziamo dalle informazioni che contano.</h2>
+          <p>Raccontaci il punto di partenza. Prepareremo un’email ordinata che potrai controllare prima di inviare.</p>
+        </div>
+
+        <div class="project-form__grid">
+          <label class="form-field">
+            <span>Nome <b>*</b></span>
+            <input type="text" name="nome" autocomplete="name" required />
+          </label>
+          <label class="form-field">
+            <span>Email <b>*</b></span>
+            <input type="email" name="email" autocomplete="email" required />
+          </label>
+          <label class="form-field">
+            <span>Nome del brand / attività <b>*</b></span>
+            <input type="text" name="brand" autocomplete="organization" required />
+          </label>
+          <label class="form-field">
+            <span>Sito attuale</span>
+            <input type="text" name="sito" inputmode="url" placeholder="www.tuosito.it" />
+          </label>
+
+          <fieldset class="form-choice form-field--wide">
+            <legend>Di cosa hai bisogno? <b>*</b></legend>
+            <div class="choice-row">
+              <label><input type="radio" name="bisogno" value="Nuovo sito" required /><span>Nuovo sito</span></label>
+              <label><input type="radio" name="bisogno" value="Restyling" /><span>Restyling</span></label>
+              <label><input type="radio" name="bisogno" value="Non sono sicuro" /><span>Non sono sicuro</span></label>
+            </div>
+          </fieldset>
+
+          <fieldset class="form-choice form-field--wide">
+            <legend>Qual è l’obiettivo principale? <b>*</b></legend>
+            <div class="choice-row">
+              <label><input type="radio" name="obiettivo" value="Più contatti" required /><span>Più contatti</span></label>
+              <label><input type="radio" name="obiettivo" value="Più prenotazioni" /><span>Più prenotazioni</span></label>
+              <label><input type="radio" name="obiettivo" value="Più vendite" /><span>Più vendite</span></label>
+              <label><input type="radio" name="obiettivo" value="Migliorare il brand" /><span>Migliorare il brand</span></label>
+              <label><input type="radio" name="obiettivo" value="Altro" /><span>Altro</span></label>
+            </div>
+          </fieldset>
+
+          <label class="form-field form-field--wide">
+            <span>Raccontaci brevemente il progetto</span>
+            <textarea name="progetto" rows="4"></textarea>
+          </label>
+
+          <fieldset class="form-choice form-field--wide">
+            <legend>Budget indicativo <small>facoltativo</small></legend>
+            <div class="choice-row">
+              <label><input type="radio" name="budget" value="Da definire" /><span>Da definire</span></label>
+              <label><input type="radio" name="budget" value="1–2k" /><span>1–2k</span></label>
+              <label><input type="radio" name="budget" value="2–5k" /><span>2–5k</span></label>
+              <label><input type="radio" name="budget" value="5k+" /><span>5k+</span></label>
+            </div>
+          </fieldset>
+        </div>
+
+        <div class="project-form__actions">
+          <p><b>*</b> Campi obbligatori</p>
+          <button class="button button--blue" type="submit">Prepara la richiesta</button>
+        </div>
+      </form>
+    </dialog>
+
+    <footer class="site-footer">
+      <div class="footer-brand">
+        <span class="brand-mark"><img src="./media/w-motion-mark-transparent.png" alt="" /></span>
+        <strong>MOTION</strong>
+      </div>
+      <p>Siti web cinematici, interattivi e orientati alla conversione.</p>
+      <div class="footer-links">
+        <a href="mailto:hello@wmotion.it">Email</a>
+        <a href="#top">Torna su</a>
+      </div>
+      <p class="copyright">© 2026 W Motion</p>
+    </footer>
+  </body>
+</html>
