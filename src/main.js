@@ -159,9 +159,9 @@ class SegmentedScrollVideo {
     });
 
     this.profile = this.selectProfile();
+    this.resize();
     this.buffer = new CircularFrameBuffer(this.bufferPolicy());
     this.resizeObserver.observe(this.canvas);
-    this.resize();
 
     const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (!('VideoDecoder' in window) || !('EncodedVideoChunk' in window) || reducedMotion) {
@@ -199,11 +199,10 @@ class SegmentedScrollVideo {
     const mobile = matchMedia('(max-width: 760px)').matches;
     const memory = navigator.deviceMemory || (mobile ? 4 : 8);
     const maxBytes = mobile
-      ? (memory < 4 ? 36 : 52) * 1024 * 1024
-      : (this.profile === 'full' ? (memory >= 8 ? 176 : 128) : 96) * 1024 * 1024;
-    const profile = this.manifest.profiles[this.profile];
-    const bytesPerFrame = profile.width * profile.height * 4;
-    const capacity = Math.max(12, Math.min(mobile ? 26 : 22, Math.floor(maxBytes / bytesPerFrame)));
+      ? (memory < 4 ? 40 : 64) * 1024 * 1024
+      : (this.profile === 'full' ? (memory >= 8 ? 192 : 128) : 112) * 1024 * 1024;
+    const bytesPerFrame = Math.max(1, this.canvas.width * this.canvas.height * 4);
+    const capacity = Math.max(18, Math.min(mobile ? 42 : 34, Math.floor(maxBytes / bytesPerFrame)));
     return { capacity, maxBytes };
   }
 
@@ -211,7 +210,7 @@ class SegmentedScrollVideo {
     const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
     const constrained = connection?.saveData || ['slow-2g', '2g', '3g'].includes(connection?.effectiveType);
     const lowMemory = navigator.deviceMemory && navigator.deviceMemory < 4;
-    if (constrained || lowMemory || innerWidth < 700) return 'medium';
+    if (constrained || lowMemory) return 'medium';
     if (innerWidth < 1024) return 'high';
     return 'full';
   }
@@ -220,6 +219,7 @@ class SegmentedScrollVideo {
     this.target = clamp(progress);
     this.direction = this.target >= this.lastTarget ? 1 : -1;
     this.lastTarget = this.target;
+    this.requestTick();
   }
 
   resize() {
@@ -246,7 +246,40 @@ class SegmentedScrollVideo {
       this.lastDrawn = -1;
       this.lastFrame = null;
       this.lastRenderedFrameIndex = -1;
+      if (this.buffer) {
+        this.buffer.clear();
+        this.buffer = new CircularFrameBuffer(this.bufferPolicy());
+        this.loaded.clear();
+        this.requestTick();
+      }
     }
+  }
+
+  renderBitmap(frame) {
+    const sourceWidth = frame.displayWidth || frame.codedWidth || frame.width;
+    const sourceHeight = frame.displayHeight || frame.codedHeight || frame.height;
+    const targetWidth = Math.max(1, this.canvas.width);
+    const targetHeight = Math.max(1, this.canvas.height);
+    const sourceAspect = sourceWidth / sourceHeight;
+    const targetAspect = targetWidth / targetHeight;
+    let sx = 0;
+    let sy = 0;
+    let cropWidth = sourceWidth;
+    let cropHeight = sourceHeight;
+
+    if (sourceAspect > targetAspect) {
+      cropWidth = Math.max(1, Math.round(sourceHeight * targetAspect));
+      sx = Math.round((sourceWidth - cropWidth) / 2);
+    } else if (sourceAspect < targetAspect) {
+      cropHeight = Math.max(1, Math.round(sourceWidth / targetAspect));
+      sy = Math.round((sourceHeight - cropHeight) / 2);
+    }
+
+    return createImageBitmap(frame, sx, sy, cropWidth, cropHeight, {
+      resizeWidth: targetWidth,
+      resizeHeight: targetHeight,
+      resizeQuality: 'high',
+    });
   }
 
   segmentUrl(index) {
@@ -327,6 +360,7 @@ class SegmentedScrollVideo {
           this.startDecode(next.index, next)
             .then(next.resolve, next.reject);
         }
+        this.requestTick();
       });
     this.activeDecode = { index, promise: task, ...options };
     this.loading.set(index, task);
@@ -368,7 +402,7 @@ class SegmentedScrollVideo {
         decoder = new VideoDecoder({
           output: (frame) => {
             const time = frame.timestamp / 1_000_000;
-            const copy = createImageBitmap(frame)
+            const copy = this.renderBitmap(frame)
               .then((bitmap) => {
                 const retained = this.buffer.add(
                   bitmap,
@@ -431,11 +465,12 @@ class SegmentedScrollVideo {
 
   tick = (now = performance.now()) => {
     if (this.destroyed || !this.started) return;
+    this.raf = 0;
     const deltaTime = this.lastTick ? clamp((now - this.lastTick) / 1000, 0.001, 0.05) : 1 / 60;
     this.lastTick = now;
     const delta = this.target - this.current;
-    const smoothing = 1 - Math.exp(-deltaTime * 9.5);
-    const maxStep = (innerWidth < 760 ? 1.55 : 1.15) * deltaTime;
+    const smoothing = 1 - Math.exp(-deltaTime * 12);
+    const maxStep = (innerWidth < 760 ? 2.1 : 1.65) * deltaTime;
     this.current += Math.sign(delta) * Math.min(Math.abs(delta), Math.abs(delta) * smoothing + deltaTime * 0.012, maxStep);
 
     const duration = this.manifest?.duration || this.fallback.duration || 0;
@@ -453,12 +488,12 @@ class SegmentedScrollVideo {
         this.fallback.currentTime = targetTime;
         this.lastFallbackFrameIndex = targetFrameIndex;
       }
-      this.raf = requestAnimationFrame(this.tick);
+      if (Math.abs(this.target - this.current) > 0.0002) this.requestTick();
       return;
     }
 
     if (this.mode !== 'webcodecs') {
-      this.raf = requestAnimationFrame(this.tick);
+      if (Math.abs(this.target - this.current) > 0.0002) this.requestTick();
       return;
     }
 
@@ -500,6 +535,11 @@ class SegmentedScrollVideo {
       this.lastDrawn = nearest.time;
       this.lastRenderedFrameIndex = nearestFrameIndex;
     }
+    if (Math.abs(this.target - this.current) > 0.0002) this.requestTick();
+  };
+
+  requestTick = () => {
+    if (!this.started || this.destroyed || this.raf) return;
     this.raf = requestAnimationFrame(this.tick);
   };
 
@@ -523,7 +563,7 @@ class SegmentedScrollVideo {
     if (this.started) return;
     this.started = true;
     this.lastTick = 0;
-    this.raf = requestAnimationFrame(this.tick);
+    this.requestTick();
   }
 
   diagnostics() {
@@ -609,6 +649,12 @@ const envelope = (progress, start, peakStart, peakEnd, end) => {
   return 1 - (progress - peakEnd) / (end - peakEnd);
 };
 
+const riseAndHold = (progress, start, peakStart) => {
+  if (progress <= start) return 0;
+  if (progress >= peakStart) return 1;
+  return (progress - start) / (peakStart - start);
+};
+
 let ticking = false;
 const updatePage = () => {
   ticking = false;
@@ -622,7 +668,7 @@ const updatePage = () => {
     const values = {
       one: envelope(progress, -0.03, 0, 0.19, 0.3),
       two: envelope(progress, 0.25, 0.34, 0.5, 0.62),
-      three: envelope(progress, 0.58, 0.67, 0.8, 0.91),
+      three: riseAndHold(progress, 0.58, 0.67),
     };
 
     for (const [key, element] of Object.entries(beats)) {
