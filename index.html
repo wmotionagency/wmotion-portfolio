@@ -30,7 +30,7 @@
           const hero = document.querySelector('[data-hero]');
           const fallback = document.querySelector('#hero-fallback');
           const header = document.querySelector('[data-header]');
-          const darkSurfaces = [...document.querySelectorAll('.manifesto, .process, .path, .closing, .site-footer')];
+          const darkSurfaces = [...document.querySelectorAll('.services, .process, .path, .closing, .site-footer')];
           const progressBar = document.querySelector('[data-progress]');
           const beats = {
             one: document.querySelector('[data-beat="one"]'),
@@ -85,6 +85,7 @@
           }, { passive: true });
           addEventListener('resize', updateDirectPreview, { passive: true });
           updateDirectPreview();
+
         });
       }
     </script>
@@ -133,7 +134,7 @@
 
           <div class="hero-copy hero-copy--two" data-beat="two">
             <p class="hero-statement">
-              Catturiamo l’attenzione, la trasformiamo in interesse e la guidiamo verso un’azione.
+              Creiamo esperienze che trasformano l’interesse in&nbsp;azione.
             </p>
           </div>
 
@@ -147,80 +148,54 @@
         </div>
       </section>
 
-      <section class="intro section" id="approccio">
+      <section class="intro section" id="approccio" data-replay-section>
         <div class="intro-grid">
           <div class="reveal">
-            <p class="kicker">L’ATTENZIONE NON BASTA.</p>
-            <h2>Deve portare<br /><span>da qualche parte.</span></h2>
+            <p class="kicker">BELLO NON BASTA.</p>
+            <h2>Deve essere chiaro.<br /><span>E portare all’azione.</span></h2>
           </div>
           <div class="intro-copy reveal">
-            <p class="lead">Un sito può essere bello e comunque non aiutare il business.</p>
+            <p class="lead">Un sito efficace fa capire il tuo valore e rende semplice il passo successivo.</p>
             <p>
-              W Motion progetta esperienze digitali che uniscono <strong>design, movimento e strategia</strong>,
-              con un obiettivo preciso: trasformare l’interesse dell’utente in un’azione concreta.
+              W Motion unisce <strong>design, movimento e strategia</strong> per trasformare ogni visita in
+              un’opportunità: un contatto, una prenotazione, una visita o un acquisto.
             </p>
           </div>
         </div>
-        <div class="outcomes" aria-label="Azioni che il sito può generare">
+        <div class="outcomes" aria-label="Azioni che il sito può generare" hidden style="display: none">
           <span>Una richiesta.</span><span>Una prenotazione.</span><span>Una visita.</span><span>Un acquisto.</span>
-        </div>
-      </section>
-
-      <section class="manifesto section">
-        <div class="manifesto-orbit" aria-hidden="true"></div>
-        <div class="manifesto-grid">
-          <div class="manifesto-title reveal">
-            <p class="kicker kicker--light">NON SOLO UN SITO.</p>
-            <h2>Un’esperienza costruita <span>per il business.</span></h2>
-          </div>
-          <div class="manifesto-copy reveal">
-            <p>Il movimento non viene aggiunto per decorare.</p>
-            <p>
-              Ogni animazione, transizione e interazione ha una funzione: attirare l’attenzione,
-              rendere più chiaro il messaggio, valorizzare ciò che rende diverso il brand e guidare
-              l’utente verso ciò che conta.
-            </p>
-          </div>
-        </div>
-        <div class="signal-rail" aria-hidden="true">
-          <div class="signal-track">
-            <div><span>ATTIRARE</span><i></i><span>CHIARIRE</span><i></i><span>GUIDARE</span><i></i><span>CONVERTIRE</span><i></i></div>
-            <div><span>ATTIRARE</span><i></i><span>CHIARIRE</span><i></i><span>GUIDARE</span><i></i><span>CONVERTIRE</span><i></i></div>
-          </div>
         </div>
       </section>
 
       <section class="services section" id="servizi">
         <div class="services-heading reveal">
-          <div class="section-number">COSA FACCIAMO</div>
-          <h2>Movimento,<br />con una direzione.</h2>
-          <p>Quattro competenze. Un’unica esperienza coerente.</p>
+          <div class="services-heading__inner">
+            <div class="section-number">COSA FACCIAMO</div>
+            <h2>Movimento,<br />con una direzione.</h2>
+            <p>Quattro competenze. Un’unica esperienza coerente.</p>
+          </div>
         </div>
 
         <div class="service-list">
           <article class="service-card reveal">
             <span class="service-index">01</span>
-            <h3>Design web<br />cinematografico</h3>
-            <p>Una direzione visiva riconoscibile, progettata intorno all’identità del brand.</p>
-            <span class="service-tag">ART DIRECTION</span>
+            <h3>Design su<br />misura</h3>
+            <p>Traduciamo l’identità dell’attività in una direzione visiva riconoscibile, coerente e facile da ricordare.</p>
           </article>
           <article class="service-card reveal">
             <span class="service-index">02</span>
-            <h3>Esperienze guidate<br />dallo scroll</h3>
-            <p>Lo scroll diventa narrazione, senza rendere il sito difficile da usare.</p>
-            <span class="service-tag">MOTION SYSTEM</span>
+            <h3>Esperienze<br />in movimento</h3>
+            <p>Usiamo scroll e interazioni per organizzare il racconto e mettere in evidenza i contenuti importanti.</p>
           </article>
           <article class="service-card reveal">
             <span class="service-index">03</span>
-            <h3>Design orientato<br />alla conversione</h3>
-            <p>Gerarchie, messaggi e CTA costruiscono un percorso verso l’azione.</p>
-            <span class="service-tag">STRATEGY</span>
+            <h3>Percorsi orientati<br />all’azione</h3>
+            <p>Messaggi, gerarchie e CTA aiutano l’utente a capire cosa fare e perché dovrebbe farlo.</p>
           </article>
           <article class="service-card reveal">
             <span class="service-index">04</span>
             <h3>Esperienza<br />responsive</h3>
-            <p>Movimento e composizione si adattano al dispositivo, non il contrario.</p>
-            <span class="service-tag">EVERY SCREEN</span>
+            <p>Adattiamo contenuti, composizione e movimento a ogni schermo, mantenendo chiarezza e fluidità.</p>
           </article>
         </div>
       </section>
@@ -232,19 +207,19 @@
             <img src="./media/perception-sculpture.png" alt="" />
           </div>
           <p class="reveal">
-            Il sito contribuisce in modo decisivo a quella percezione. Prima ancora che l’utente analizzi
-            servizi, prezzi o caratteristiche, il design comunica il livello di cura, autorevolezza e
-            coerenza del brand. Per questo lavoriamo sull’esperienza completa: ciò che l’utente vede,
-            ciò che capisce, la fiducia che costruisce e ciò che sente mentre attraversa il brand.
-            Quando ogni elemento parla la stessa lingua, il sito non presenta soltanto un’attività:
-            ne rende immediatamente percepibile il valore.
+            Il sito contribuisce in modo decisivo alla percezione di un’attività perché il primo giudizio
+            nasce prima della lettura. Ordine, tipografia, colori, immagini e fluidità diventano segnali
+            immediati di cura, competenza e affidabilità. Gli studi sulle interfacce mostrano che
+            l’impressione visiva si forma in una frazione di secondo e può influenzare la credibilità
+            attribuita ai contenuti. Per questo un’esperienza coerente non si limita a presentare il
+            business: rende il suo valore più facile da riconoscere, comprendere e ricordare.
           </p>
         </div>
       </section>
 
       <section class="process section" id="processo">
         <div class="process-intro reveal">
-          <div class="section-number section-number--light">COME LAVORIAMO</div>
+          <h2 class="process-title">COME LAVORIAMO</h2>
         </div>
         <ol class="process-list">
           <li class="reveal">
@@ -254,7 +229,7 @@
             <span>02 —</span><div><h3>Concept</h3><p>Definiamo la direzione creativa e il modo in cui movimento e interazione possono rafforzare il messaggio.</p></div>
           </li>
           <li class="reveal">
-            <span>03 —</span><div><h3>Prototipo</h3><p>Prima di sviluppare l’intero sito costruiamo una prima esperienza concreta.</p><p>Il progetto può essere visto, valutato e perfezionato prima di procedere.</p></div>
+            <span>03 —</span><div><h3>Prototipo</h3><p>Costruiamo una prima esperienza concreta, così il progetto può essere visto e perfezionato prima dello sviluppo completo.</p></div>
           </li>
           <li class="reveal">
             <span>04 —</span><div><h3>Sviluppo</h3><p>Il concept approvato diventa un’esperienza completa, responsive e pronta per essere pubblicata.</p></div>
@@ -282,9 +257,9 @@
         <div class="closing-glow" aria-hidden="true"></div>
         <img src="./media/w-motion-logo.png" alt="" class="closing-logo" />
         <div class="closing-content reveal">
-          <p class="kicker">IL PROSSIMO PROGETTO POTREBBE PARTIRE DA QUI.</p>
-          <h2>Immaginiamo qualcosa<br />che si faccia <span>sentire.</span></h2>
-          <p>Se un sito tradizionale non riesce a rappresentare pienamente il valore del brand, possiamo immaginare qualcosa di diverso.</p>
+          <p class="kicker">IL PROSSIMO PASSO</p>
+          <h2>Costruiamo un sito<br />che faccia capire <span>il tuo valore.</span></h2>
+          <p>Raccontaci dove vuoi arrivare. Trasformeremo identità, contenuti e obiettivi in un’esperienza chiara, distintiva e semplice da scegliere.</p>
           <button class="button button--light" type="button" data-open-project-modal aria-haspopup="dialog" aria-controls="project-modal">Inizia un progetto</button>
         </div>
       </section>
